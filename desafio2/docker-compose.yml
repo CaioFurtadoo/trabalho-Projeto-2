@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: desafio2
+    networks:
+      - desafio2-net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  writer:
+    build: .
+    depends_on:
+      - db
+    environment:
+      PGHOST: db
+      PGUSER: user
+      PGPASSWORD: pass
+      PGDATABASE: desafio2
+      PGPORT: 5432
+    networks:
+      - desafio2-net
+    command: ["python", "writer.py"]
+
+  reader:
+    build: .
+    depends_on:
+      - db
+    environment:
+      PGHOST: db
+      PGUSER: user
+      PGPASSWORD: pass
+      PGDATABASE: desafio2
+      PGPORT: 5432
+    networks:
+      - desafio2-net
+    command: ["python", "reader.py"]
+
+networks:
+  desafio2-net:
+
+volumes:
+  postgres_data:

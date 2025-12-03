@@ -1,0 +1,23 @@
+services:
+  users-service:
+    build: ./users-service
+    container_name: users-service
+    ports:
+      - "8080:8080"
+    networks:
+      - desafio4-net
+
+  consumer-service:
+    build: ./consumer-service
+    container_name: consumer-service
+    depends_on:
+      - users-service
+    environment:
+      USERS_SERVICE_URL: http://users-service:8080/users
+    ports:
+      - "9090:9090"
+    networks:
+      - desafio4-net
+
+networks:
+  desafio4-net:

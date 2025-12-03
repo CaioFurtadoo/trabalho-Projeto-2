@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:15
+    container_name: desafio3_db
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo_pass
+      POSTGRES_DB: demo_db
+    volumes:
+      - desafio3_postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - desafio3-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo_db -h localhost -p 5432"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  cache:
+    image: redis:7
+    container_name: desafio3_cache
+    networks:
+      - desafio3-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: ./web
+    container_name: desafio3_web
+    depends_on:
+      - db
+      - cache
+    environment:
+      FLASK_ENV: production
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: demo
+      DB_PASS: demo_pass
+      DB_NAME: demo_db
+      REDIS_HOST: cache
+      REDIS_PORT: "6379"
+    ports:
+      - "5000:5000"
+    networks:
+      - desafio3-net
+    # opcional: reinicia em caso de falha
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  desafio3_postgres_data:
+
+networks:
+  desafio3-net:
+    driver: bridge
