@@ -26,9 +26,6 @@ desafio2/
 - Docker instalado e rodando (Docker Desktop / Docker Engine).
 - Terminal (Git Bash no Windows recomendado).
 
-
----
-
 ## Testes rápidos que você pode executar agora (resumo)
 1. `docker compose up -d db`
 2. `docker compose run --rm writer python writer.py`
@@ -36,10 +33,3 @@ desafio2/
 4. `docker compose down`
 5. `docker compose up -d db`
 6. `docker compose run --rm reader python reader.py` → dados ainda aparecem
-
-Se depois você quiser, eu **posso**:
-- Gerar uma versão onde `writer` roda automaticamente 1x no `docker compose up` (usando `entrypoint` e `docker-entrypoint-initdb.d`), ou
-- Tornar `writer` um processo que insira periodicamente em loop,
-- Adicionar um pequeno front-end que mostre as notas via HTTP.
-
-Quer que eu gere também um `run.ps1` ou um `run.sh` com os comandos de demonstração já prontos (para facilitar sua entrega)?
