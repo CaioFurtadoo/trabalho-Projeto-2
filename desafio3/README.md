@@ -37,7 +37,14 @@ desafio3/
 - Docker e Docker Compose (Docker Desktop ou Docker Engine).
 - Terminal (Git Bash recomendado no Windows).
 
-### 1) Subir todos os serviços (em background)
+### 1) Subir todos os serviços e rodar no gitbash
 ```bash
 cd desafio3
 docker compose up -d
+docker ps
+docker compose ps
+curl http://localhost:5000/items
+curl http://localhost:5000/items/refresh
+curl http://localhost:5000/health
+docker logs -f desafio3_web
+docker logs -f desafio3_db

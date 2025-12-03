@@ -24,7 +24,7 @@ desafio2/
 ## Como executar (passo a passo)
 ### Requisitos
 - Docker instalado e rodando (Docker Desktop / Docker Engine).
-- Terminal (Git Bash no Windows recomendado).
+- Terminal em cd desafio2 (Git Bash no Windows recomendado).
 
 ## Testes rápidos que você pode executar agora (resumo)
 1. `docker compose up -d db`

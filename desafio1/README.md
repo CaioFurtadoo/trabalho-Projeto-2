@@ -46,23 +46,30 @@ O script faz:
 - inicia o container `client` conectado à mesma rede
 
 ### Executando manualmente (comandos equivalentes)
-1. Criar a rede (caso necessário):
-   ```bash
-   docker network inspect desafio1-net >/dev/null 2>&1 || docker network create desafio1-net
+1. Dê permissão aos scripts:
+- chmod +x run.sh client/loop.sh
+
+2. Execute o script principal (ele cria a rede, builda e sobe ambos os containers):
    ```
-2. Buildar as imagens:
-   ```bash
-   docker build -t desafio1-server ./server
-   docker build -t desafio1-client ./client
+- ./run.sh
    ```
-3. Rodar o servidor:
-   ```bash
-   docker run -d --name server --network desafio1-net -p 8080:8080 desafio1-server
+
+3. Verifique os containers em execução:
    ```
-4. Rodar o client (em background):
-   ```bash
-   docker run -d --name client --network desafio1-net desafio1-client
+- docker ps
    ```
+4. Para ver os logs em tempo real:
+
+Logs do servidor:
+   ```
+- docker logs -f server
+   ```
+
+Logs do client:
+   ```
+- docker logs -f client
+   ```
+
 
 ## Como testar / demonstrar comunicação
 - Acesse localmente o servidor:

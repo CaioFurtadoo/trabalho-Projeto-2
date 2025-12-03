@@ -133,11 +133,7 @@ curl http://localhost:8080/users
 
 Retorno esperado:
 
-[
-  {"id":1,"name":"Caio","active_since":"2022-01-10"},
-  {"id":2,"name":"Mariana","active_since":"2023-05-01"},
-  {"id":3,"name":"Pedro","active_since":"2024-02-20"}
-]
+[{"active_since":"2022-01-10","id":1,"name":"Caio"},{"active_since":"2023-05-01","id":2,"name":"Mariana"},{"active_since":"2024-02-20","id":3,"name":"Pedro"}]
 
 🟢 Consumer Service
 curl http://localhost:9090/combined
@@ -145,13 +141,7 @@ curl http://localhost:9090/combined
 
 Retorno esperado:
 
-{
-  "details": [
-    "Usuário Caio ativo desde 2022-01-10",
-    "Usuário Mariana ativo desde 2023-05-01",
-    "Usuário Pedro ativo desde 2024-02-20"
-  ]
-}
+{"details":["Usu\u00e1rio Caio ativo desde 2022-01-10","Usu\u00e1rio Mariana ativo desde 2023-05-01","Usu\u00e1rio Pedro ativo desde 2024-02-20"]}
 
 🧪 Testando a Comunicação Interna
 

@@ -1,159 +1,113 @@
-🧩 Desafio 5 — Sistema de Fila com Redis (Producer/Consumer)
-📌 Descrição da Solução
 
-Este desafio implementa um sistema simples baseado em fila de mensagens, utilizando Redis como broker.
-O sistema possui dois containers principais:
+# Desafio 5 — Microsserviços com API Gateway
 
-producer → Envia mensagens para uma fila chamada queue:messages.
+## Objetivo
+Criar uma arquitetura com um API Gateway centralizando o acesso a dois microsserviços:
+- `users-service`: fornece dados de usuários
+- `orders-service`: fornece pedidos
+- `gateway`: expõe endpoints `/users` e `/orders` e encaminha as requisições internamente
 
-consumer → Lê continuamente a fila e processa cada mensagem.
+Todos os serviços rodam em containers e são orquestrados pelo `docker-compose.yml` da pasta.
 
-A comunicação é feita pela rede Docker interna, e os serviços são orquestrados via Docker Compose.
+## Arquitetura e decisões técnicas
+- Linguagem: Python + Flask para serviços pequenos e claros.
+- Comunicação interna: HTTP entre containers usando nomes de serviço do Docker Compose (`users-service`, `orders-service`).
+- Gateway: faz proxy simples para os serviços e expõe uma porta única (`8000`) para o cliente.
+- Isolamento: cada serviço tem seu próprio `Dockerfile` e ambiente, garantindo independência.
 
-📁 Estrutura de Arquivos
+Fluxo de requisição (resumido):
+1. Cliente -> `gateway` (http://localhost:8000/users ou /orders)
+2. `gateway` faz `requests.get("http://users-service:5001/users")` ou `http://orders-service:5002/orders`
+3. `gateway` retorna ao cliente a resposta JSON recebida do serviço alvo
+
+## Estrutura do projeto
+```
 desafio5/
-│
-├── producer/
-│   ├── producer.py
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-├── consumer/
-│   ├── consumer.py
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-├── docker-compose.yml
-└── README.md
+├─ docker-compose.yml
+├─ gateway/
+│  ├─ app.py
+	├─ Dockerfile
+	└─ requirements.txt
+├─ users-service/
+│  ├─ app.py
+	├─ Dockerfile
+	└─ requirements.txt
+└─ orders-service/
+	 ├─ app.py
+	 ├─ Dockerfile
+	 └─ requirements.txt
+```
 
-🚀 Como funciona cada componente
-✔️ Redis
+## Endpoints expostos
+- `GET /users` (gateway) → proxied para `users-service` → responde lista de usuários JSON
+- `GET /orders` (gateway) → proxied para `orders-service` → responde lista de pedidos JSON
 
-Servidor principal de mensagens.
+Observação: `users-service` e `orders-service` escutam internamente nas portas `5001` e `5002`, respectivamente — essas portas não são mapeadas para o host. O único ponto de entrada para o usuário é o `gateway` na porta `8000`.
 
-Contém a fila queue:messages.
+## Como executar (passo a passo)
 
-✔️ Producer
+### Pré-requisitos
+- Docker instalado e em execução (Docker Desktop / Engine)
 
-Envia mensagens para Redis usando o comando:
+### Subir a stack
+Abra um terminal na pasta `desafio5` e execute:
 
-r.lpush("queue:messages", mensagem)
+```powershell
+cd C:\Users\Caio\Desktop\trabalho\desafio5
+docker compose up --build -d
+```
 
+Com isso o Compose irá construir as imagens e iniciar os 3 containers na rede interna `desafio5`.
 
-O producer cria uma mensagem com timestamp e envia para a fila.
+### Validar que os serviços estão rodando
 
-✔️ Consumer
+```powershell
+docker compose ps
+```
 
-Consome mensagens continuamente via:
+Deve mostrar `gateway`, `users-service` e `orders-service` como `Up`.
 
-r.brpop("queue:messages")
+### Testar os endpoints via gateway (exemplos)
 
+```powershell
+# Lista de usuários (via gateway)
+curl http://localhost:8000/users
 
-Cada mensagem retirada da fila é exibida no terminal, simulando um processamento.
+# Lista de pedidos (via gateway)
+curl http://localhost:8000/orders
+```
 
-▶️ Como Executar
-1. Subir toda a stack
-docker compose up -d
+Exemplo de resposta esperada para `/users`:
 
+```json
+[
+	{"id":1,"name":"Caio"},
+	{"id":2,"name":"Mariana"}
+]
+```
 
-Isso iniciará:
+Exemplo de resposta esperada para `/orders`:
 
-redis
+```json
+[
+	{"id":10,"user_id":1,"total":150.9},
+	{"id":11,"user_id":2,"total":89.3}
+]
+```
 
-consumer
+### Ver logs (debug / demonstração)
 
-OBS: o producer não roda automaticamente para permitir execuções manuais.
+```powershell
+# ver logs do gateway
+docker compose logs -f gateway
 
-2. Executar o producer (enviar uma mensagem)
-docker compose run --rm producer
+# ver logs dos serviços
+docker compose logs -f users-service
+docker compose logs -f orders-service
+```
 
+### Parar e limpar
 
-Exemplo de saída:
-
-Producer iniciado.
-Mensagem enviada: "Olá do producer! - 2025-12-01 15:42:00"
-Producer finalizado.
-
-3. Visualizar o consumer processando
-
-O consumer roda automaticamente em background.
-
-Para ver logs:
-
-docker compose logs -f consumer
-
-
-Exemplo:
-
-Consumer iniciado. Aguardando mensagens...
-Mensagem recebida: "Olá do producer! - 2025-12-01 15:42:00"
-
-🛑 Parar tudo
-docker compose down -v
-
-
-Remove containers, rede e volumes.
-
-🔧 Serviços (docker-compose.yml)
-services:
-  redis:
-    image: redis:7
-    container_name: redis
-    networks:
-      - desafio5-net
-
-  producer:
-    build: ./producer
-    networks:
-      - desafio5-net
-    depends_on:
-      - redis
-
-  consumer:
-    build: ./consumer
-    networks:
-      - desafio5-net
-    depends_on:
-      - redis
-
-networks:
-  desafio5-net:
-    driver: bridge
-
-💬 Exemplo do Producer (producer.py)
-import redis
-from datetime import datetime
-import time
-
-r = redis.Redis(host="redis", port=6379)
-
-print("Producer iniciado.")
-
-msg = f"Mensagem gerada em {datetime.now()}"
-r.lpush("queue:messages", msg)
-
-print(f"Mensagem enviada: {msg}")
-print("Producer finalizado.")
-
-🔄 Exemplo do Consumer (consumer.py)
-import redis
-
-r = redis.Redis(host="redis", port=6379)
-
-print("Consumer iniciado. Aguardando mensagens...")
-
-while True:
-    _, msg = r.brpop("queue:messages")
-    print(f"Mensagem recebida: {msg.decode()}")
-
-✅ Resultado Esperado
-
-Ao rodar o producer, o consumer deve automaticamente processar a mensagem, demonstrando:
-
-comunicação entre containers
-
-uso real de uma fila
-
-persistência temporária de mensagens
-
-fluxo producer → broker → consumer
+```powershell
+docker compose down
+```
